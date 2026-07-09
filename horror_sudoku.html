@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>빈칸을 채우시오 — 제9구역 관찰 기록</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+
+:root {
+  --paper-dark: #16130f;
+  --paper-panel: #1f1a14;
+  --paper-panel-2: #241e17;
+  --ink: #c4bba6;
+  --ink-dim: #736c5a;
+  --ink-bright: #e9e1cd;
+  --stamp-red: #7d2020;
+  --stamp-red-bright: #b03a3a;
+  --grid-line: #3a3327;
+  --grid-line-strong: #5c4f32;
+  --highlight: #2f2a1f;
+  --highlight-strong: #453a24;
+  --tape: rgba(158, 140, 94, 0.32);
+}
+
+* { box-sizing: border-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html, body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--paper-dark);
+  color: var(--ink);
+}
+
+body {
+  font-family: 'Special Elite', 'Courier New', Courier, monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 12px;
+  position: relative;
+}
+
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  filter: url(#grainFilter);
+  opacity: 0.05;
+  z-index: 200;
+}
+
+.vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%);
+  z-index: 150;
+}
+
+/* ---------- document panel ---------- */
+
+.document-panel {
+  background: var(--paper-panel);
+  border: 1px solid var(--grid-line-strong);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.65), inset 0 0 90px rgba(0,0,0,0.35);
+  padding: 22px 22px 18px;
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+}
+
+.document-panel::before,
+.document-panel::after {
+  content: '';
+  position: absolute;
+  width: 56px;
+  height: 22px;
+  background: var(--tape);
+  z-index: 2;
+}
+.document-panel::before { top: -9px; left: 22px; transform: rotate(-4deg); }
+.document-panel::after  { top: -9px; right: 22px; transform: rotate(3deg); }
+
+.document-panel.flicker-effect { animation: flicker 0.6s ease-in-out 1; }
+@keyframes flicker {
+  0%   { filter: brightness(1) saturate(1); }
+  25%  { filter: brightness(0.45) saturate(1.15); }
+  42%  { filter: brightness(1.25); }
+  58%  { filter: brightness(0.55); }
+  100% { filter: brightness(1) saturate(1); }
+}
+
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--ink-dim);
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.observer-status { text-align: right; line-height: 1.6; }
+.observer-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--stamp-red-bright);
+  box-shadow: 0 0 6px var(--stamp-red-bright);
+  animation: pulse-dot 2s infinite;
+  margin-right: 4px;
+}
+@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+.case-header {
+  text-align: center;
+  margin-bottom: 16px;
+  border-bottom: 1px dashed var(--grid-line-strong);
+  padding-bottom: 14px;
+}
+.case-title {
+  font-size: clamp(20px, 5.5vw, 25px);
+  letter-spacing: 2px;
+  color: var(--ink-bright);
+  margin: 0 0 8px;
+  font-weight: normal;
+}
+.case-subtitle {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--stamp-red-bright);
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+.case-subject { font-size: 11px; color: var(--ink-dim); letter-spacing: 1px; }
+.case-subject span { color: var(--ink); }
+
+.stats-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--ink-dim);
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.diff-buttons { display: flex; gap: 6px; }
+.diff-btn {
+  background: transparent;
+  border: 1px solid var(--grid-line-strong);
+  color: var(--ink-dim);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+.diff-btn:hover { color: var(--ink-bright); border-color: var(--ink-dim); }
+.diff-btn.active { border-color: var(--stamp-red-bright); color: var(--ink-bright); background: var(--highlight); }
+
+.mistake-tracker { display: flex; align-items: center; gap: 8px; }
+.stamp-box {
+  position: relative;
+  width: 74px;
+  height: 30px;
+  overflow: hidden;
+  border: 1px dashed var(--grid-line-strong);
+  flex-shrink: 0;
+}
+.error-stamp {
+  position: absolute;
+  font-size: 8px;
+  border: 1.5px solid var(--stamp-red-bright);
+  color: var(--stamp-red-bright);
+  padding: 1px 4px;
+  opacity: 0.85;
+  font-weight: bold;
+  white-space: nowrap;
+  background: rgba(125,32,32,0.06);
+}
+
+.controls-row { display: flex; gap: 6px; }
+.icon-btn {
+  background: transparent;
+  border: 1px solid var(--grid-line-strong);
+  color: var(--ink-dim);
+  font-size: 14px;
+  width: 30px; height: 30px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.icon-btn:hover { color: var(--ink-bright); border-color: var(--ink-dim); }
+
+/* ---------- grid ---------- */
+
+.grid-wrapper { display: flex; justify-content: center; margin: 14px 0; }
+
+.sudoku-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  width: min(86vw, 372px);
+  height: min(86vw, 372px);
+  background: var(--paper-panel-2);
+  border: 2px solid var(--grid-line-strong);
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--grid-line);
+  font-size: clamp(14px, 3.6vw, 19px);
+  cursor: pointer;
+  user-select: none;
+  color: var(--ink-bright);
+  position: relative;
+  transition: background-color 0.15s;
+}
+.cell.given { color: var(--ink-dim); cursor: default; }
+.cell.selected { background: var(--highlight-strong); }
+.cell.peer { background: var(--highlight); }
+.cell.same-number:not(.given) { color: var(--stamp-red-bright); }
+.cell.wrong { color: var(--stamp-red-bright); }
+.cell.border-r-thick { border-right: 2px solid var(--grid-line-strong); }
+.cell.border-b-thick { border-bottom: 2px solid var(--grid-line-strong); }
+
+.cell.shake { animation: shake 0.4s; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+.cell.number-glitch {
+  color: var(--stamp-red-bright);
+  text-shadow: 1px 0 #3f7d7d, -1px 0 var(--stamp-red-bright);
+}
+
+/* ---------- number pad ---------- */
+
+.number-pad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin: 16px 0 6px;
+}
+.num-btn {
+  background: var(--paper-panel-2);
+  border: 1px solid var(--grid-line-strong);
+  color: var(--ink-bright);
+  font-family: inherit;
+  font-size: 15px;
+  padding: 10px 0;
+  cursor: pointer;
+}
+.num-btn:hover { background: var(--highlight); }
+.num-btn.completed { opacity: 0.22; pointer-events: none; }
+.num-btn.erase { color: var(--stamp-red-bright); font-size: 13px; }
+
+/* ---------- log line ---------- */
+
+.log-line-wrap {
+  border-top: 1px dashed var(--grid-line-strong);
+  margin-top: 14px;
+  padding-top: 10px;
+  min-height: 34px;
+  font-size: 12px;
+  color: var(--ink-dim);
+  line-height: 1.5;
+}
+.log-line.typing::after {
+  content: '▌';
+  animation: cursor-blink 0.8s step-end infinite;
+  color: var(--stamp-red-bright);
+}
+@keyframes cursor-blink { 50% { opacity: 0; } }
+
+/* ---------- overlays ---------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 6, 4, 0.93);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s ease;
+  padding: 20px;
+}
+.overlay.show { opacity: 1; pointer-events: auto; }
+.overlay-content {
+  text-align: center;
+  max-width: 380px;
+  padding: 34px 28px;
+  border: 1px solid var(--grid-line-strong);
+  background: var(--paper-panel);
+}
+.overlay-stamp {
+  font-size: clamp(22px, 6vw, 30px);
+  letter-spacing: 4px;
+  border: 3px solid var(--stamp-red-bright);
+  color: var(--stamp-red-bright);
+  display: inline-block;
+  padding: 10px 22px;
+  transform: rotate(-3deg);
+  margin-bottom: 22px;
+}
+.overlay-message {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.9;
+  margin-bottom: 26px;
+}
+.overlay-meta { font-size: 10px; color: var(--ink-dim); margin-bottom: 20px; letter-spacing: 1px; }
+.overlay-btn {
+  background: transparent;
+  border: 1px solid var(--ink-dim);
+  color: var(--ink-bright);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 11px 26px;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+.overlay-btn:hover { border-color: var(--stamp-red-bright); color: var(--stamp-red-bright); }
+
+button:focus-visible, .cell:focus-visible {
+  outline: 2px dashed var(--stamp-red-bright);
+  outline-offset: 2px;
+}
+
+@media (max-width: 420px) {
+  .document-panel { padding: 18px 14px 14px; }
+  .case-title { letter-spacing: 1px; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <filter id="grainFilter">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch" result="noise"/>
+    <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.77  0 0 0 0 0.72  0 0 0 0 0.62  0 0 0 0.6 0"/>
+  </filter>
+</svg>
+
+<div class="grain-overlay"></div>
+<div class="vignette"></div>
+
+<div class="document-panel" id="document-panel">
+
+  <div class="top-row">
+    <div>기록 № <span id="case-number">0001</span></div>
+    <div class="observer-status">
+      <span class="observer-dot" id="observer-dot"></span>관찰자 접속됨<br>
+      <span id="observer-status-text">상태: 주시 중</span>
+    </div>
+  </div>
+
+  <div class="case-header">
+    <h1 class="case-title">빈칸을 채우시오</h1>
+    <div class="case-subtitle">제9구역 관찰 기록 · 기밀</div>
+    <div class="case-subject">피험자: <span>당신</span></div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="diff-buttons">
+      <button class="diff-btn" data-diff="easy">쉬움</button>
+      <button class="diff-btn active" data-diff="normal">보통</button>
+      <button class="diff-btn" data-diff="hard">어려움</button>
+    </div>
+    <div>기록시간 <span id="timer-display">00:00</span></div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="mistake-tracker">
+      <span>오류 (<span id="mistake-count">0</span>/5)</span>
+      <div class="stamp-box" id="stamp-area"></div>
+    </div>
+    <div class="controls-row">
+      <button class="icon-btn" id="sound-toggle" aria-label="소리 켜기" title="소리 켜기/끄기">🔇</button>
+      <button class="icon-btn" id="new-game-btn" aria-label="새 기록 시작" title="새 기록 시작">↻</button>
+    </div>
+  </div>
+
+  <div class="grid-wrapper">
+    <div class="sudoku-grid" id="sudoku-grid"></div>
+  </div>
+
+  <div class="number-pad" id="number-pad">
+    <button class="num-btn" data-num="1">1</button>
+    <button class="num-btn" data-num="2">2</button>
+    <button class="num-btn" data-num="3">3</button>
+    <button class="num-btn" data-num="4">4</button>
+    <button class="num-btn" data-num="5">5</button>
+    <button class="num-btn" data-num="6">6</button>
+    <button class="num-btn" data-num="7">7</button>
+    <button class="num-btn" data-num="8">8</button>
+    <button class="num-btn" data-num="9">9</button>
+    <button class="num-btn erase" data-num="0" aria-label="지우기">✕</button>
+  </div>
+
+  <div class="log-line-wrap">
+    <span class="log-line" id="log-line"></span>
+  </div>
+
+</div>
+
+<div class="overlay" id="win-overlay">
+  <div class="overlay-content">
+    <div class="overlay-stamp">기록 종료</div>
+    <div class="overlay-message">
+      관찰이 완료되었습니다.<br>
+      이 격자는 이제 필요 없습니다.<br><br>
+      ...하지만 다음 격자가 이미 준비되어 있습니다.
+    </div>
+    <div class="overlay-meta" id="win-time-meta"></div>
+    <button class="overlay-btn" id="play-again-win">다음 관찰 시작</button>
+  </div>
+</div>
+
+<div class="overlay" id="lose-overlay">
+  <div class="overlay-content">
+    <div class="overlay-stamp">부적합 판정</div>
+    <div class="overlay-message">
+      허용된 오류 수를 초과했습니다.<br>
+      이 기록은 파기 대상입니다.<br><br>
+      ...그러나 절차는 반복된다.
+    </div>
+    <button class="overlay-btn" id="play-again-lose">다시 시도</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ---------------- state ---------------- */
+  let solution = [], puzzle = [], userGrid = [], fixed = [];
+  let selectedRow = -1, selectedCol = -1;
+  let mistakes = 0;
+  const MAX_MISTAKES = 5;
+  let difficulty = 'normal';
+  let timerInterval = null, secondsElapsed = 0;
+  let gameActive = false;
+  let soundEnabled = false, audioCtx = null, ambientNodes = null;
+  let ambientEventTimeout = null, logTypingTimeout = null;
+  let caseNumber = 3000 + Math.floor(Math.random() * 900);
+
+  const removeCounts = { easy: 38, normal: 48, hard: 56 };
+
+  const logMessages = [
+    '기록: 이전 피험자는 3번째 줄에서 멈췄다.',
+    '기록: 손이 떨리고 있습니까?',
+    '기록: 정답은 이미 알고 있다.',
+    '기록: 왜 다시 확인하는가?',
+    '기록: 37명 중 2명만이 여기를 통과했다.',
+    '기록: 그만두는 것도 기록된다.',
+    '기록: 숫자는 거짓말하지 않는다. 당신은?',
+    '기록: 계속하시오.',
+    '기록: 관찰자가 만족하지 않는다.',
+    '기록: 이 격자를 몇 번째로 보는 겁니까?',
+    '기록: 뒤를 돌아보지 마시오.',
+    '기록: 이것은 그저 숫자일 뿐이다.',
+    '기록: 조용히 하시오. 듣고 있다.',
+    '기록: 당신의 이름은 이미 알고 있다.',
+    '기록: 평범한 격자다. 그렇게 믿으시오.'
+  ];
+  const logMessagesUrgent = [
+    '기록: 오류가 누적되고 있다.',
+    '기록: 이대로는 통과할 수 없다.',
+    '기록: 관찰자의 인내심이 한계에 다다랐다.',
+    '기록: 다시 생각하시오. 마지막 기회일 수 있다.',
+    '기록: 실패한 기록은... 파기된다.',
+    '기록: 왜 같은 실수를 반복하는가?'
+  ];
+
+  /* ---------------- sudoku engine ---------------- */
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function isValidPlacement(grid, row, col, num) {
+    for (let x = 0; x < 9; x++) {
+      if (grid[row][x] === num || grid[x][col] === num) return false;
+    }
+    const sr = row - (row % 3), sc = col - (col % 3);
+    for (let i = 0; i < 3; i++)
+      for (let j = 0; j < 3; j++)
+        if (grid[sr + i][sc + j] === num) return false;
+    return true;
+  }
+
+  function fillGrid(grid) {
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (grid[r][c] === 0) {
+          for (const n of shuffle([1,2,3,4,5,6,7,8,9])) {
+            if (isValidPlacement(grid, r, c, n)) {
+              grid[r][c] = n;
+              if (fillGrid(grid)) return true;
+              grid[r][c] = 0;
+            }
+          }
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  function generateSolution() {
+    const grid = Array.from({length:9}, () => Array(9).fill(0));
+    fillGrid(grid);
+    return grid;
+  }
+
+  function createPuzzle(sol, removeN) {
+    const p = sol.map(row => row.slice());
+    const positions = shuffle(Array.from({length:81}, (_, i) => i));
+    let toRemove = removeN;
+    for (const pos of positions) {
+      if (toRemove <= 0) break;
+      const r = Math.floor(pos / 9), c = pos % 9;
+      p[r][c] = 0;
+      toRemove--;
+    }
+    return p;
+  }
+
+  /* ---------------- rendering ---------------- */
+  function renderGrid() {
+    const gridEl = document.getElementById('sudoku-grid');
+    gridEl.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.r = r;
+        cell.dataset.c = c;
+        if (fixed[r][c]) cell.classList.add('given');
+        if (puzzle[r][c] !== 0) cell.textContent = puzzle[r][c];
+        if (c % 3 === 2 && c !== 8) cell.classList.add('border-r-thick');
+        if (r % 3 === 2 && r !== 8) cell.classList.add('border-b-thick');
+        cell.addEventListener('click', () => selectCell(r, c));
+        frag.appendChild(cell);
+      }
+    }
+    gridEl.appendChild(frag);
+  }
+
+  function getCellEl(r, c) {
+    return document.querySelector('.cell[data-r="' + r + '"][data-c="' + c + '"]');
+  }
+
+  function selectCell(r, c) {
+    selectedRow = r; selectedCol = c;
+    updateSelectionHighlight();
+  }
+
+  function updateSelectionHighlight() {
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach(cell => cell.classList.remove('selected', 'peer', 'same-number'));
+    if (selectedRow === -1) return;
+    const selVal = userGrid[selectedRow][selectedCol];
+    cells.forEach(cell => {
+      const r = +cell.dataset.r, c = +cell.dataset.c;
+      if (r === selectedRow && c === selectedCol) {
+        cell.classList.add('selected');
+      } else if (r === selectedRow || c === selectedCol ||
+        (Math.floor(r/3) === Math.floor(selectedRow/3) && Math.floor(c/3) === Math.floor(selectedCol/3))) {
+        cell.classList.add('peer');
+      }
+      if (selVal !== 0 && userGrid[r][c] === selVal) cell.classList.add('same-number');
+    });
+  }
+
+  function updateNumberPadCounts() {
+    const counts = Array(10).fill(0);
+    for (let r = 0; r < 9; r++)
+      for (let c = 0; c < 9; c++)
+        if (userGrid[r][c] !== 0 && userGrid[r][c] === solution[r][c]) counts[userGrid[r][c]]++;
+    document.querySelectorAll('.num-btn').forEach(btn => {
+      const n = +btn.dataset.num;
+      if (n >= 1) btn.classList.toggle('completed', counts[n] >= 9);
+    });
+  }
+
+  /* ---------------- gameplay ---------------- */
+  function inputNumber(num) {
+    if (!gameActive || selectedRow === -1) return;
+    if (fixed[selectedRow][selectedCol]) return;
+    const cellEl = getCellEl(selectedRow, selectedCol);
+
+    if (num === 0) {
+      userGrid[selectedRow][selectedCol] = 0;
+      cellEl.textContent = '';
+      cellEl.classList.remove('wrong');
+      updateSelectionHighlight();
+      updateNumberPadCounts();
+      return;
+    }
+
+    userGrid[selectedRow][selectedCol] = num;
+    cellEl.textContent = num;
+
+    if (num !== solution[selectedRow][selectedCol]) {
+      cellEl.classList.add('wrong');
+      handleMistake(cellEl);
+    } else {
+      cellEl.classList.remove('wrong');
+      updateSelectionHighlight();
+      updateNumberPadCounts();
+      checkWin();
+    }
+  }
+
+  function handleMistake(cellEl) {
+    mistakes++;
+    document.getElementById('mistake-count').textContent = mistakes;
+    addErrorStamp();
+    updateObserverStatus();
+    playMistakeSound();
+    triggerScreenFlicker();
+
+    cellEl.classList.add('shake');
+    setTimeout(() => cellEl.classList.remove('shake'), 400);
+
+    typeLogMessage(logMessagesUrgent[Math.floor(Math.random() * logMessagesUrgent.length)]);
+
+    if (mistakes >= MAX_MISTAKES) {
+      setTimeout(triggerGameOver, 850);
+    }
+  }
+
+  function checkWin() {
+    for (let r = 0; r < 9; r++)
+      for (let c = 0; c < 9; c++)
+        if (userGrid[r][c] !== solution[r][c]) return false;
+    triggerWin();
+    return true;
+  }
+
+  function addErrorStamp() {
+    const container = document.getElementById('stamp-area');
+    const stamp = document.createElement('div');
+    stamp.className = 'error-stamp';
+    stamp.textContent = '오류';
+    const rot = (Math.random() * 46 - 23).toFixed(1);
+    const top = Math.random() * 14;
+    const left = Math.random() * 44;
+    stamp.style.top = top + 'px';
+    stamp.style.left = left + 'px';
+    stamp.style.transform = 'rotate(' + rot + 'deg)';
+    container.appendChild(stamp);
+  }
+
+  function updateObserverStatus() {
+    const statusEl = document.getElementById('observer-status-text');
+    const dotEl = document.getElementById('observer-dot');
+    let text;
+    if (mistakes === 0) text = '주시 중';
+    else if (mistakes <= 2) text = '집중 관찰';
+    else if (mistakes <= 4) text = '경고 단계';
+    else text = '판정 대기';
+    statusEl.textContent = '상태: ' + text;
+    dotEl.style.animationDuration = Math.max(0.5, 2 - mistakes * 0.3) + 's';
+  }
+
+  function triggerScreenFlicker() {
+    const panel = document.getElementById('document-panel');
+    panel.classList.add('flicker-effect');
+    setTimeout(() => panel.classList.remove('flicker-effect'), 600);
+  }
+
+  function flickerRandomNumber() {
+    const filledCells = [];
+    for (let r = 0; r < 9; r++)
+      for (let c = 0; c < 9; c++)
+        if (userGrid[r][c] !== 0) filledCells.push([r, c]);
+    if (filledCells.length === 0) return;
+    const [r, c] = filledCells[Math.floor(Math.random() * filledCells.length)];
+    const cellEl = getCellEl(r, c);
+    if (!cellEl) return;
+    const original = cellEl.textContent;
+    if (!original) return;
+    const fake = ((parseInt(original, 10) + 1 + Math.floor(Math.random() * 7)) % 9) + 1;
+    cellEl.textContent = fake;
+    cellEl.classList.add('number-glitch');
+    setTimeout(() => {
+      cellEl.textContent = original;
+      cellEl.classList.remove('number-glitch');
+    }, 170 + Math.random() * 180);
+  }
+
+  /* ---------------- typewriter log ---------------- */
+  function typeLogMessage(msg) {
+    clearTimeout(logTypingTimeout);
+    const el = document.getElementById('log-line');
+    el.textContent = '';
+    el.classList.add('typing');
+    let i = 0;
+    (function typeChar() {
+      if (i < msg.length) {
+        el.textContent += msg[i];
+        i++;
+        logTypingTimeout = setTimeout(typeChar, 40 + Math.random() * 35);
+      } else {
+        el.classList.remove('typing');
+      }
+    })();
+  }
+
+  function scheduleAmbientLog() {
+    if (!gameActive) return;
+    const baseDelay = 13000;
+    const reduction = mistakes * 1400;
+    const delay = Math.max(4500, baseDelay - reduction) + Math.random() * 6000;
+    ambientEventTimeout = setTimeout(() => {
+      if (!gameActive) return;
+      const pool = mistakes >= 3 ? logMessagesUrgent : logMessages;
+      typeLogMessage(pool[Math.floor(Math.random() * pool.length)]);
+      if (Math.random() < 0.4) flickerRandomNumber();
+      if (Math.random() < 0.2) triggerScreenFlicker();
+      scheduleAmbientLog();
+    }, delay);
+  }
+
+  /* ---------------- timer ---------------- */
+  function startTimer() {
+    secondsElapsed = 0;
+    updateTimerDisplay();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => { secondsElapsed++; updateTimerDisplay(); }, 1000);
+  }
+  function stopTimer() { clearInterval(timerInterval); }
+  function updateTimerDisplay() {
+    const m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+    const s = (secondsElapsed % 60).toString().padStart(2, '0');
+    document.getElementById('timer-display').textContent = m + ':' + s;
+  }
+
+  /* ---------------- win / lose ---------------- */
+  function triggerWin() {
+    gameActive = false;
+    stopTimer();
+    clearTimeout(ambientEventTimeout);
+    clearTimeout(logTypingTimeout);
+    playWinSound();
+    const m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+    const s = (secondsElapsed % 60).toString().padStart(2, '0');
+    document.getElementById('win-time-meta').textContent = '소요 시간 ' + m + ':' + s + ' · 오류 ' + mistakes + '회';
+    setTimeout(() => document.getElementById('win-overlay').classList.add('show'), 500);
+  }
+
+  function triggerGameOver() {
+    gameActive = false;
+    stopTimer();
+    clearTimeout(ambientEventTimeout);
+    clearTimeout(logTypingTimeout);
+    playLoseSound();
+    triggerScreenFlicker();
+    setTimeout(() => document.getElementById('lose-overlay').classList.add('show'), 750);
+  }
+
+  /* ---------------- audio (Web Audio API, no external files) ---------------- */
+  function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    const btn = document.getElementById('sound-toggle');
+    btn.textContent = soundEnabled ? '🔊' : '🔇';
+    if (soundEnabled) {
+      initAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      startAmbientSound();
+    } else {
+      stopAmbientSound();
+    }
+  }
+
+  function startAmbientSound() {
+    if (!audioCtx || ambientNodes) return;
+    const osc1 = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    const mainGain = audioCtx.createGain();
+    osc1.type = 'sine'; osc1.frequency.value = 54;
+    osc2.type = 'sine'; osc2.frequency.value = 57;
+    lfo.type = 'sine'; lfo.frequency.value = 0.15;
+    lfoGain.gain.value = 0.014;
+    mainGain.gain.value = 0.03;
+    lfo.connect(lfoGain);
+    lfoGain.connect(mainGain.gain);
+    osc1.connect(mainGain);
+    osc2.connect(mainGain);
+    mainGain.connect(audioCtx.destination);
+    osc1.start(); osc2.start(); lfo.start();
+    ambientNodes = { osc1, osc2, lfo };
+  }
+
+  function stopAmbientSound() {
+    if (!ambientNodes) return;
+    try {
+      ambientNodes.osc1.stop();
+      ambientNodes.osc2.stop();
+      ambientNodes.lfo.stop();
+    } catch (e) {}
+    ambientNodes = null;
+  }
+
+  function playMistakeSound() {
+    if (!soundEnabled || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.35);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.35);
+  }
+
+  function playWinSound() {
+    if (!soundEnabled || !audioCtx) return;
+    [220, 233, 220].forEach((freq, i) => {
+      const t0 = audioCtx.currentTime + i * 0.42;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.06, t0 + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.8);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(t0); osc.stop(t0 + 0.8);
+    });
+  }
+
+  function playLoseSound() {
+    if (!soundEnabled || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(28, audioCtx.currentTime + 1.1);
+    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.1);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 1.1);
+  }
+
+  /* ---------------- game lifecycle ---------------- */
+  function newGame(diff) {
+    difficulty = diff;
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.toggle('active', b.dataset.diff === diff));
+
+    solution = generateSolution();
+    puzzle = createPuzzle(solution, removeCounts[diff]);
+    userGrid = puzzle.map(row => row.slice());
+    fixed = puzzle.map(row => row.map(v => v !== 0));
+
+    mistakes = 0;
+    selectedRow = -1; selectedCol = -1;
+    gameActive = true;
+    caseNumber++;
+
+    document.getElementById('case-number').textContent = String(caseNumber).padStart(4, '0');
+    document.getElementById('mistake-count').textContent = '0';
+    document.getElementById('stamp-area').innerHTML = '';
+    document.getElementById('win-overlay').classList.remove('show');
+    document.getElementById('lose-overlay').classList.remove('show');
+
+    renderGrid();
+    updateSelectionHighlight();
+    updateNumberPadCounts();
+    updateObserverStatus();
+    startTimer();
+
+    clearTimeout(ambientEventTimeout);
+    scheduleAmbientLog();
+    typeLogMessage('기록: 새로운 관찰을 시작한다.');
+  }
+
+  /* ---------------- keyboard ---------------- */
+  document.addEventListener('keydown', (e) => {
+    if (!gameActive || selectedRow === -1) return;
+    if (e.key >= '1' && e.key <= '9') { inputNumber(parseInt(e.key, 10)); return; }
+    if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') { inputNumber(0); return; }
+    if (e.key === 'ArrowUp')    { selectedRow = Math.max(0, selectedRow - 1); updateSelectionHighlight(); }
+    if (e.key === 'ArrowDown')  { selectedRow = Math.min(8, selectedRow + 1); updateSelectionHighlight(); }
+    if (e.key === 'ArrowLeft')  { selectedCol = Math.max(0, selectedCol - 1); updateSelectionHighlight(); }
+    if (e.key === 'ArrowRight') { selectedCol = Math.min(8, selectedCol + 1); updateSelectionHighlight(); }
+  });
+
+  /* ---------------- init ---------------- */
+  function init() {
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+      btn.addEventListener('click', () => newGame(btn.dataset.diff));
+    });
+    document.querySelectorAll('.num-btn').forEach(btn => {
+      btn.addEventListener('click', () => inputNumber(+btn.dataset.num));
+    });
+    document.getElementById('sound-toggle').addEventListener('click', toggleSound);
+    document.getElementById('new-game-btn').addEventListener('click', () => newGame(difficulty));
+    document.getElementById('play-again-win').addEventListener('click', () => newGame(difficulty));
+    document.getElementById('play-again-lose').addEventListener('click', () => newGame(difficulty));
+
+    newGame('normal');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
