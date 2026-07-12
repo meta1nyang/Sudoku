@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>까망이는 내 진짜 친구다</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@300;400;700&family=Gamja+Flower&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#F7F6F6;
+--ink:#4a4442;
+--purple:#8E44AD;
+--coral:#C97C2A;
+--pink:#E8A6C8;
+--leaf:#8FB573;
+--mute:#9a9a9a;
+--highlight:#FCE39B;
+--line:#EAE3E8;
+--margin-line:#F1C6D4;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+margin:0;
+background:var(--bg);
+font-family:'Gaegu', sans-serif;
+color:var(--ink);
+padding: clamp(24px,6vw,56px) 16px 60px;
+}
+
+.page{
+max-width:700px;
+margin:0 auto;
+}
+
+.title-wrap{
+text-align:center;
+margin-bottom:8px;
+}
+
+.title{
+font-family:'Gamja Flower', cursive;
+font-size: clamp(1.8rem, 6vw, 3.1rem);
+color:var(--purple);
+margin:0;
+display:inline-block;
+transform: rotate(-2deg);
+}
+
+.squiggle{
+display:block;
+width:220px;
+height:16px;
+margin:6px auto 0;
+}
+
+.subtitle{
+text-align:center;
+color:var(--mute);
+font-size:1.05rem;
+transform:rotate(1deg);
+margin:10px 0 36px;
+}
+
+.photo-wrap{
+position:relative;
+max-width:440px;
+margin:0 auto 48px;
+transform:rotate(-1.6deg);
+}
+
+.photo-frame{
+background:#fff;
+padding:10px 10px 32px;
+border-radius:4px;
+box-shadow:0 10px 22px rgba(0,0,0,0.18);
+}
+
+.photo-frame img{
+display:block;
+width:100%;
+border-radius:2px;
+}
+
+.tape{
+position:absolute;
+width:66px;
+height:24px;
+top:-13px;
+box-shadow:0 2px 4px rgba(0,0,0,0.1);
+}
+.tape.left{ left:-8px; background:rgba(241,198,212,0.75); transform:rotate(-14deg); }
+.tape.right{ right:-8px; background:rgba(142,68,173,0.35); transform:rotate(12deg); }
+
+.diary{
+position:relative;
+background:#fff;
+border-radius:14px;
+padding:34px 26px 34px 70px;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+background-image:repeating-linear-gradient(
+to bottom, transparent 0, transparent 46px, var(--line) 47px
+);
+}
+
+.diary::before{
+content:'';
+position:absolute;
+left:42px; top:0; bottom:0;
+width:2px;
+background:var(--margin-line);
+}
+
+.diary p{
+--rot: 0deg;
+font-size: clamp(1.1rem, 3vw, 1.38rem);
+line-height:1.95;
+margin:0 0 0.1rem;
+opacity:0;
+transform: translateY(26px) rotate(var(--rot));
+transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.diary p.visible{
+opacity:1;
+transform: translateY(0) rotate(var(--rot));
+}
+
+.diary p:nth-child(odd){ --rot:-0.5deg; }
+.diary p:nth-child(even){ --rot:0.6deg; }
+.diary p:nth-child(3n){ --rot:-0.3deg; }
+
+@media (prefers-reduced-motion: reduce){
+.diary p{
+opacity:1 !important;
+transform: rotate(var(--rot)) !important;
+transition:none !important;
+}
+}
+
+.name{ color:var(--coral); font-weight:700; }
+
+.no{
+color:var(--mute);
+text-decoration:line-through;
+text-decoration-color:var(--mute);
+text-decoration-thickness:2px;
+}
+
+.hl{
+background:linear-gradient(180deg, transparent 58%, var(--highlight) 58%);
+padding:0 2px;
+}
+
+.closing{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:16px;
+margin-top:46px;
+}
+
+.signature{
+color:var(--mute);
+font-size:1.15rem;
+transform:rotate(-1deg);
+}
+
+@media (max-width:480px){
+.diary{ padding:26px 18px 26px 46px; }
+.diary::before{ left:22px; }
+.closing{ flex-direction:column; gap:10px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="title-wrap">
+<h1 class="title">까망이는 내 진짜 친구다</h1>
+<svg class="squiggle" viewBox="0 0 220 16" preserveAspectRatio="none">
+<path d="M2,8 Q20,-2 38,8 T74,8 T110,8 T146,8 T182,8 T218,8" stroke="#8E44AD" stroke-width="4" fill="none" stroke-linecap="round"/>
+</svg>
+</div>
+
+<p class="subtitle">- 보라색옷 입은 내가씀 -</p>
+
+<div class="photo-wrap">
+<span class="tape left"></span>
+<span class="tape right"></span>
+<div class="photo-frame">
+<img src="https://i.ibb.co/sd1w4XW9/c34508d5-bfd7-4ec9-81af-59016fa88603.png" alt="우리 가족이랑 까망이가 손잡고 있는 그림">
+</div>
+</div>
+
+<div class="diary">
+<p>까망이 눈은 하얗고 동그랗다. 나는 그 눈이 젤 조아한다. 까망이가 웃으면 눈이 반짝반짝 한다.</p>
+<p>엄마아빠 는 나를 이해하지 못했다. 저 <span class="no">괘물</span>과 친구를 왜하 냐고 했다. 근데 까망이는 <span class="no">괘물</span>이 아니다. 그냥 색깔이 까말 뿐이다.</p>
+<p>동네 어른들도 볼때마다 무섭다 그런다. 나는 하나도 안무섭다. 까망이는 나 한번도 아프게 한적 없다.</p>
+<p>내가 너머지면 까망이가 젤먼저 와서 이르켜 준다. 손도 꼭 잡아준다. 되게 <span class="hl">따뜻하다</span>.</p>
+<p>어른들은 겉만 보고 안에는 안본다. 까망이 맘은 하나도 안보니까 자꾸 무섭다 그러는거다.</p>
+<p>나는 까망이 맘을 안다. 순하고 착하다. 그래서 나는 까망이가 하나도 안무섭다.</p>
+<p>나는 그냥 <span class="name">까망이</span>랑 오래오래 <span class="hl">놀고시프다</span>. 어른들이 뭐라케도 나는 손 안노을거다.</p>
+<p><span class="name">까망이</span>도 우리 <span class="hl">가족이다</span>.</p>
+</div>
+
+<div class="closing">
+<svg width="44" height="52" viewBox="0 0 44 52">
+<g transform="translate(22,20)">
+<ellipse cx="0" cy="-11" rx="6.5" ry="9.5" fill="#E8A6C8" transform="rotate(0)"/>
+<ellipse cx="0" cy="-11" rx="6.5" ry="9.5" fill="#E8A6C8" transform="rotate(72)"/>
+<ellipse cx="0" cy="-11" rx="6.5" ry="9.5" fill="#E8A6C8" transform="rotate(144)"/>
+<ellipse cx="0" cy="-11" rx="6.5" ry="9.5" fill="#E8A6C8" transform="rotate(216)"/>
+<ellipse cx="0" cy="-11" rx="6.5" ry="9.5" fill="#E8A6C8" transform="rotate(288)"/>
+<circle cx="0" cy="0" r="5.5" fill="#FCE39B"/>
+</g>
+<line x1="22" y1="28" x2="22" y2="50" stroke="#8FB573" stroke-width="3" stroke-linecap="round"/>
+</svg>
+
+<span class="signature">- 까망이의 진짜친구가 -</span>
+
+<svg width="44" height="52" viewBox="0 0 44 52">
+<g transform="translate(22,20)">
+<ellipse cx="0" cy="-11" rx="6.5" ry="9.5" fill="#FCE39B" transform="rotate(0)"/>
+<ellipse cx="0" cy="-11" rx="6.5" ry="9.5" fill="#FCE39B" transform="rotate(72)"/>
+<ellipse cx="0" cy="-11" rx="6.5" ry="9.5" fill="#FCE39B" transform="rotate(144)"/>
+<ellipse cx="0" cy="-11" rx="6.5" ry="9.5" fill="#FCE39B" transform="rotate(216)"/>
+<ellipse cx="0" cy="-11" rx="6.5" ry="9.5" fill="#FCE39B" transform="rotate(288)"/>
+<circle cx="0" cy="0" r="5.5" fill="#C97C2A"/>
+</g>
+<line x1="22" y1="28" x2="22" y2="50" stroke="#8FB573" stroke-width="3" stroke-linecap="round"/>
+</svg>
+</div>
+
+</div>
+
+<script>
+(function(){
+var paragraphs = document.querySelectorAll('.diary p');
+if(!('IntersectionObserver' in window)){
+paragraphs.forEach(function(p){ p.classList.add('visible'); });
+return;
+}
+var io = new IntersectionObserver(function(entries){
+entries.forEach(function(entry){
+entry.target.classList.toggle('visible', entry.isIntersecting);
+});
+}, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+paragraphs.forEach(function(p){ io.observe(p); });
+})();
+</script>
+</body>
+</html>
